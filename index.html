@@ -5,47 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>도쿄 디벙커 캐릭터 소트</title>
     <style>
-        body { font-family: 'Pretendard', sans-serif; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        h1 { color: #333; margin-bottom: 30px; }
-        .container { display: flex; gap: 20px; width: 90%; max-width: 600px; }
-        .button { flex: 1; height: 200px; background: white; border: 2px solid #ddd; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; text-align: center; }
-        .button:hover { border-color: #6e8efb; transform: translateY(-5px); }
-        .progress-bar { width: 90%; max-width: 600px; height: 10px; background: #ddd; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
-        .progress { height: 100%; background: #6e8efb; width: 0%; transition: width 0.3s; }
-        #result { display: none; width: 90%; max-width: 400px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .result-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #f8f9fa; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+        h1 { color: #2d3436; margin-bottom: 10px; font-size: 1.5rem; }
+        .info { color: #636e72; margin-bottom: 30px; font-size: 0.9rem; }
+        
+        .progress-container { width: 100%; max-width: 500px; background: #dfe6e9; height: 8px; border-radius: 4px; margin-bottom: 30px; overflow: hidden; }
+        .progress-bar { height: 100%; background: #0984e3; width: 0%; transition: width 0.3s; }
+
+        .sorter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 600px; }
+        .btn { background: white; border: 2px solid #dee2e6; border-radius: 12px; padding: 40px 20px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn:hover { border-color: #0984e3; background: #f1f7ff; transform: translateY(-2px); }
+        
+        .sub-btns { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .btn-sub { padding: 20px; font-size: 1rem; background: #f1f2f6; color: #2d3436; height: auto; border-color: #ced4da; }
+        .btn-sub:hover { background: #e2e4e9; border-color: #adb5bd; }
+
+        #result { display: none; width: 100%; max-width: 400px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .result-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f2f6; font-size: 1.1rem; }
+        .rank { font-weight: bold; color: #0984e3; width: 40px; }
+        .name { flex-grow: 1; margin-left: 10px; }
     </style>
 </head>
 <body>
 
     <h1>도쿄 디벙커 캐릭터 소트</h1>
+    <p class="info">가장 마음에 드는 캐릭터를 골라주세요!</p>
     
-    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+    <div class="progress-container"><div class="progress-bar" id="progress"></div></div>
 
-    <div class="container" id="main-area">
-        <div class="button" id="left-btn" onclick="select('left')">왼쪽</div>
-        <div class="button" id="right-btn" onclick="select('right')">오른쪽</div>
+    <div class="sorter-grid" id="main-area">
+        <div class="btn" id="left-btn" onclick="select('left')">왼쪽</div>
+        <div class="btn" id="right-btn" onclick="select('right')">오른쪽</div>
+        
+        <div class="sub-btns">
+            <div class="btn btn-sub" onclick="select('both')">둘 다 좋다</div>
+            <div class="btn btn-sub" onclick="select('skip')">모르겠다</div>
+        </div>
     </div>
 
     <div id="result">
-        <h2>소트 결과</h2>
+        <h2 style="text-align: center; margin-top: 0;">나의 캐릭터 순위</h2>
         <div id="result-list"></div>
-        <button onclick="location.reload()" style="margin-top:20px; width:100%; padding:10px; cursor:pointer;">다시 하기</button>
+        <button onclick="location.reload()" style="margin-top:25px; width:100%; padding:15px; border:none; background:#0984e3; color:white; border-radius:10px; font-weight:bold; cursor:pointer;">다시 하기</button>
     </div>
 
     <script>
-        // 캐릭터 리스트 
+        // 1. 캐릭터 리스트
         const characters = ["카무라이 진", "이시바시 토우마", "루카스 에란트", "후지 카이토", "미도 아란", "하이조노 쇼헤이", "쿠로사기 레오", "카가미 스바루", "코토다마 젠지", "쿠사나기 하쿠", "이사미 유리", "키리사키 지로", "에드워드 하트", "라이카 콜트", "미즈키 루이", "사가라 하루", "시라나미 렌", "오토나시 토와", "호시바미 타이가", "신죠 리츠", "로미오 루치"];
         
         let list = characters.map(name => [name]);
         let mergedList = [];
-        let leftIdx = 0, rightIdx = 0;
         let leftArr = [], rightArr = [];
+        let leftIdx = 0, rightIdx = 0;
         let tempMerged = [];
         let totalSteps = 0, currentStep = 0;
 
         function init() {
-            // 대략적인 진행도 계산을 위한 총 단계 설정
+            // 대략적인 진행 단계 계산
             totalSteps = characters.length * Math.log2(characters.length);
             nextMerge();
         }
@@ -78,10 +94,10 @@
             leftIdx = 0;
             rightIdx = 0;
             tempMerged = [];
-            updateButtons();
+            updateUI();
         }
 
-        function updateButtons() {
+        function updateUI() {
             document.getElementById('left-btn').innerText = leftArr[leftIdx];
             document.getElementById('right-btn').innerText = rightArr[rightIdx];
             
@@ -94,14 +110,31 @@
             if (choice === 'left') {
                 tempMerged.push(leftArr[leftIdx]);
                 leftIdx++;
-            } else {
+            } else if (choice === 'right') {
                 tempMerged.push(rightArr[rightIdx]);
                 rightIdx++;
+            } else if (choice === 'both') {
+                // 둘 다 좋을 경우: 왼쪽을 먼저 넣고 오른쪽도 바로 넣음
+                tempMerged.push(leftArr[leftIdx]);
+                tempMerged.push(rightArr[rightIdx]);
+                leftIdx++;
+                rightIdx++;
+            } else if (choice === 'skip') {
+                // 모르겠다: 랜덤하게 하나를 선택한 것으로 간주하여 진행
+                if (Math.random() > 0.5) {
+                    tempMerged.push(leftArr[leftIdx]);
+                    leftIdx++;
+                } else {
+                    tempMerged.push(rightArr[rightIdx]);
+                    rightIdx++;
+                }
             }
 
+            // 한쪽 배열이 끝났는지 확인
             if (leftIdx < leftArr.length && rightIdx < rightArr.length) {
-                updateButtons();
+                updateUI();
             } else {
+                // 남은 요소들 합치기
                 tempMerged = tempMerged.concat(leftArr.slice(leftIdx)).concat(rightArr.slice(rightIdx));
                 list.push(tempMerged);
                 mergedList.shift();
@@ -111,13 +144,18 @@
 
         function showResult(finalList) {
             document.getElementById('main-area').style.display = 'none';
-            document.getElementById('progress').style.width = "100%";
+            document.getElementById('progress').parentNode.style.display = 'none';
+            document.querySelector('.info').style.display = 'none';
             const resultDiv = document.getElementById('result');
             const resultList = document.getElementById('result-list');
             resultDiv.style.display = 'block';
             
             finalList.forEach((name, index) => {
-                resultList.innerHTML += `<div class="result-item"><span>${index + 1}위</span> <span>${name}</span></div>`;
+                resultList.innerHTML += `
+                    <div class="result-item">
+                        <span class="rank">${index + 1}</span>
+                        <span class="name">${name}</span>
+                    </div>`;
             });
         }
 
