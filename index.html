@@ -49,117 +49,124 @@
         <button onclick="location.reload()" style="margin-top:25px; width:100%; padding:15px; border:none; background:#0984e3; color:white; border-radius:10px; font-weight:bold; cursor:pointer;">다시 하기</button>
     </div>
 
-    <script>
-        // 1. 캐릭터 리스트
-        const characters = ["카무라이 진", "이시바시 토우마", "루카스 에란트", "후지 카이토", "미도 아란", "하이조노 쇼헤이", "쿠로사기 레오", "카가미 스바루", "코토다마 젠지", "쿠사나기 하쿠", "이사미 유리", "키리사키 지로", "에드워드 하트", "라이카 콜트", "미즈키 루이", "사가라 하루", "시라나미 렌", "오토나시 토와", "호시바미 타이가", "신죠 리츠", "로미오 루치"];
-        
-        let list = characters.map(name => [name]);
-        let mergedList = [];
-        let leftArr = [], rightArr = [];
-        let leftIdx = 0, rightIdx = 0;
-        let tempMerged = [];
-        let totalSteps = 0, currentStep = 0;
+<script>
+    // 1. 캐릭터 리스트
+    const characters = ["카무라이 진", "이시바시 토우마", "루카스 에란트", "후지 카이토", "미도 아란", "하이조노 쇼헤이", "쿠로사기 레오", "카가미 스바루", "코토다마 젠지", "쿠사나기 하쿠", "이사미 유리", "키리사키 지로", "에드워드 하트", "라이카 콜트", "미즈키 루이", "사가라 하루", "시라나미 렌", "오토나시 토와", "호시바미 타이가", "신죠 리츠", "로미오 루치"];
+    
+    let list = characters.map(name => [name]);
+    let mergedList = [];
+    let leftArr = [], rightArr = [];
+    let leftIdx = 0, rightIdx = 0;
+    let tempMerged = [];
+    let totalSteps = 0, currentStep = 0;
 
-        function init() {
-            // 대략적인 진행 단계 계산
-            totalSteps = characters.length * Math.log2(characters.length);
-            nextMerge();
-        }
+    function init() {
+        // 대략적인 진행 단계 계산 (N log N)
+        totalSteps = Math.ceil(characters.length * Math.log2(characters.length));
+        nextMerge();
+    }
 
-        function nextMerge() {
+    function nextMerge() {
+        // 대결할 쌍(mergedList)이 비었을 때만 체크
+        if (mergedList.length === 0) {
+            // 리스트에 하나만 남았다면 진짜 종료!
             if (list.length <= 1) {
                 showResult(list[0]);
                 return;
             }
 
-            if (mergedList.length === 0) {
-                while (list.length > 1) {
-                    let a = list.shift();
-                    let b = list.shift();
-                    mergedList.push({a, b});
-                }
-                if (list.length === 1) mergedList.push({a: list.shift(), b: null});
+            // 리스트의 항목들을 대결 쌍으로 만듦
+            while (list.length > 1) {
+                let a = list.shift();
+                let b = list.shift();
+                mergedList.push({a, b});
             }
-
-            let currentPair = mergedList[0];
-            if (currentPair.b === null) {
-                list.push(currentPair.a);
-                mergedList.shift();
-                nextMerge();
-                return;
+            // 홀수개가 남았다면 다음 라운드로 넘김
+            if (list.length === 1) {
+                mergedList.push({a: list.shift(), b: null});
             }
-
-            leftArr = currentPair.a;
-            rightArr = currentPair.b;
-            leftIdx = 0;
-            rightIdx = 0;
-            tempMerged = [];
-            updateUI();
         }
 
-        function updateUI() {
-            document.getElementById('left-btn').innerText = leftArr[leftIdx];
-            document.getElementById('right-btn').innerText = rightArr[rightIdx];
-            
-            currentStep++;
-            let progress = Math.min((currentStep / totalSteps) * 100, 99);
-            document.getElementById('progress').style.width = progress + "%";
+        let currentPair = mergedList[0];
+
+        // 부전승 처리 (상대 대결 군이 없는 경우)
+        if (currentPair.b === null) {
+            list.push(currentPair.a);
+            mergedList.shift();
+            nextMerge();
+            return;
         }
 
-        function select(choice) {
-            if (choice === 'left') {
-                tempMerged.push(leftArr[leftIdx]);
-                leftIdx++;
-            } else if (choice === 'right') {
-                tempMerged.push(rightArr[rightIdx]);
-                rightIdx++;
-            } else if (choice === 'both') {
-                // 둘 다 좋을 경우: 왼쪽을 먼저 넣고 오른쪽도 바로 넣음
-                tempMerged.push(leftArr[leftIdx]);
-                tempMerged.push(rightArr[rightIdx]);
-                leftIdx++;
-                rightIdx++;
-            } else if (choice === 'skip') {
-                // 모르겠다: 랜덤하게 하나를 선택한 것으로 간주하여 진행
-                if (Math.random() > 0.5) {
-                    tempMerged.push(leftArr[leftIdx]);
-                    leftIdx++;
-                } else {
-                    tempMerged.push(rightArr[rightIdx]);
-                    rightIdx++;
-                }
-            }
+        leftArr = currentPair.a;
+        rightArr = currentPair.b;
+        leftIdx = 0;
+        rightIdx = 0;
+        tempMerged = [];
+        updateUI();
+    }
 
-            // 한쪽 배열이 끝났는지 확인
-            if (leftIdx < leftArr.length && rightIdx < rightArr.length) {
-                updateUI();
+    function updateUI() {
+        document.getElementById('left-btn').innerText = leftArr[leftIdx];
+        document.getElementById('right-btn').innerText = rightArr[rightIdx];
+        
+        currentStep++;
+        // 진행률 표시 (최대 100%를 넘지 않게 조절)
+        let progress = Math.min((currentStep / totalSteps) * 100, 99);
+        document.getElementById('progress').style.width = progress + "%";
+    }
+
+    function select(choice) {
+        if (choice === 'left') {
+            tempMerged.push(leftArr[leftIdx]);
+            leftIdx++;
+        } else if (choice === 'right') {
+            tempMerged.push(rightArr[rightIdx]);
+            rightIdx++;
+        } else if (choice === 'both') {
+            tempMerged.push(leftArr[leftIdx]);
+            tempMerged.push(rightArr[rightIdx]);
+            leftIdx++;
+            rightIdx++;
+        } else if (choice === 'skip') {
+            if (Math.random() > 0.5) {
+                tempMerged.push(leftArr[leftIdx]);
+                leftIdx++;
             } else {
-                // 남은 요소들 합치기
-                tempMerged = tempMerged.concat(leftArr.slice(leftIdx)).concat(rightArr.slice(rightIdx));
-                list.push(tempMerged);
-                mergedList.shift();
-                nextMerge();
+                tempMerged.push(rightArr[rightIdx]);
+                rightIdx++;
             }
         }
 
-        function showResult(finalList) {
-            document.getElementById('main-area').style.display = 'none';
-            document.getElementById('progress').parentNode.style.display = 'none';
-            document.querySelector('.info').style.display = 'none';
-            const resultDiv = document.getElementById('result');
-            const resultList = document.getElementById('result-list');
-            resultDiv.style.display = 'block';
-            
-            finalList.forEach((name, index) => {
-                resultList.innerHTML += `
-                    <div class="result-item">
-                        <span class="rank">${index + 1}</span>
-                        <span class="name">${name}</span>
-                    </div>`;
-            });
+        // 현재 두 그룹 간의 비교가 끝났는지 확인
+        if (leftIdx < leftArr.length && rightIdx < rightArr.length) {
+            updateUI();
+        } else {
+            // 남은 요소들을 합쳐서 다시 list에 넣음
+            tempMerged = tempMerged.concat(leftArr.slice(leftIdx)).concat(rightArr.slice(rightIdx));
+            list.push(tempMerged);
+            mergedList.shift(); // 현재 대결 완료된 쌍 제거
+            nextMerge(); // 다음 대결로 진행
         }
+    }
 
-        init();
-    </script>
+    function showResult(finalList) {
+        document.getElementById('main-area').style.display = 'none';
+        document.getElementById('progress').parentNode.style.display = 'none';
+        document.querySelector('.info').style.display = 'none';
+        const resultDiv = document.getElementById('result');
+        const resultList = document.getElementById('result-list');
+        resultDiv.style.display = 'block';
+        
+        finalList.forEach((name, index) => {
+            resultList.innerHTML += `
+                <div class="result-item">
+                    <span class="rank">${index + 1}</span>
+                    <span class="name">${name}</span>
+                </div>`;
+        });
+    }
+
+    init();
+</script>
 </body>
 </html>
